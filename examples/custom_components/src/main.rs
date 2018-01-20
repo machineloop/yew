@@ -22,8 +22,12 @@ impl counter::Printer for Context {
     }
 }
 
-struct Model {
+struct CountButton {
     color: Color,
+}
+
+struct Model {
+    count_buttons: Vec<CountButton>,
 }
 
 enum Msg {
@@ -37,14 +41,16 @@ impl Component<Context> for Model {
 
     fn create(_: &mut Env<Context, Self>) -> Self {
         Model {
-            color: Color::Red,
+            count_buttons: vec![CountButton{
+                color: Color::Red,
+            }]
         }
     }
 
     fn update(&mut self, msg: Msg, context: &mut Env<Context, Self>) -> ShouldRender {
         match msg {
             Msg::Repaint => {
-                self.color = Color::Blue;
+                self.count_buttons.first().unwrap().color = Color::Blue;
                 true
             }
             Msg::ChildClicked(value) => {
@@ -57,13 +63,13 @@ impl Component<Context> for Model {
 
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
-        let counter = |_| html! {
-            <Counter: color=&self.color, onclick=Msg::ChildClicked,/>
+        let counter = |model: &CountButton| html! {
+            <Counter: color=model.color, onclick=Msg::ChildClicked,/>
         };
         html! {
             <div>
                 <Barrier: limit=10, onsignal=|_| Msg::Repaint, />
-                { for (0..1000).map(counter) }
+                { for &self.count_buttons.iter().map(counter) }
             </div>
         }
     }
